@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>dnn_yolo</name>
+  <version>0.0.1</version>
+  <description>YOLO-based deep neural network example project using ROS 2.</description>
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <!-- <buildtool_depend>rosidl_default_generators</buildtool_depend> -->
+
+  <build_depend>ament_cmake</build_depend>
+  <build_depend>ament_lint_auto</build_depend>
+  <build_depend>ament_lint_common</build_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>ament_index_cpp</build_depend>
+  <build_depend>opencv</build_depend>
+  <build_depend>boost</build_depend>
+  <build_depend>realsense2</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>camera_custom_interfaces</build_depend>
+  <!-- <build_depend>rosidl_default_generators</build_depend> -->
+  <!-- <build_depend>builtin_interfaces</build_depend> -->
+
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>ament_index_cpp</exec_depend>
+  <exec_depend>opencv</exec_depend>
+  <exec_depend>boost</exec_depend>
+  <exec_depend>realsense2</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>camera_custom_interfaces</exec_depend>
+  <!-- <exec_depend>rosidl_default_runtime</exec_depend> -->
+  <!-- <exec_depend>rosidl_default_generators</exec_depend> -->
+  <!-- <exec_depend>builtin_interfaces</exec_depend> -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <!-- <member_of_group>rosidl_interface_packages</member_of_group> -->
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
