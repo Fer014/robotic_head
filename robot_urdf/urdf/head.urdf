@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<robot name="test_union">
+	<material name="red">
+		<color rgba="0.0 0.0 0.0 1"/>
+	</material>
+	<material name="green">
+		<color rgba="0.0 1.0 0.0 1"/>
+	</material>
+	<material name="blue">
+		<color rgba="0.0 0.0 1.0 1"/>
+	</material>
+	<material name="black">
+		<color rgba="0.25 0.25 0.25 1"/>
+	</material>
+	<link name="neck_link"> <!--Links are rigid parts of robots-->
+		  <visual>
+			<origin rpy="0 0 0" xyz="0 0 0.0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/visual/STL/RoboHabilis_Neck.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+			<material name="black"/>
+		  </visual>
+		  <collision>
+			<origin rpy="0 0 0" xyz="0 0 0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/collision/STL/RoboHabilis_Neck.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+		  </collision>
+	</link>
+	<link name="dx_link">
+		  <visual>
+			<origin rpy="0 0 0" xyz="0.0 0 0.0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/visual/STL/RoboHabilis_DX.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+			<material name="black"/>
+		  </visual>
+		  <collision>
+			<origin rpy="0 0 0" xyz="0.0 0 0.0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/collision/STL/RoboHabilis_DX.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+		  </collision>
+	</link>
+	<link name="tilt_link">
+		  <visual>
+			<origin rpy="0 0 0" xyz="0.0 0 0"/> 
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/visual/STL/RoboHabilis_Tilt.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+			<material name="black"/>
+		  </visual>
+		  <collision>
+			<origin rpy="0 0 0" xyz="0.0 0 0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/collision/STL/RoboHabilis_Tilt.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+		  </collision>
+	</link>
+  <link name="head_link">
+		  <visual>
+			<origin rpy="0 0 0" xyz="0.0 0.0 0.0"/> 
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/visual/STL/RoboHabilis_Head.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+			<material name="black"/>
+		  </visual>
+		  <collision>
+			<origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+			<geometry>
+			  <mesh filename="package://robot_urdf/meshes/collision/STL/RoboHabilis_Head.stl" scale="0.001 0.001 0.001"/>
+			</geometry>
+		  </collision>
+	</link>
+
+
+	<joint name="neck_dx_joint" type="revolute">
+		<parent link="neck_link"/>
+		<child link="dx_link"/>
+		<axis xyz="0 0 1"/>
+		<origin rpy="0 0 0" xyz="-0.001621 0 0.1195"/>
+    <limit lower="-0.34906585" upper="0.34906585" effort="10" velocity="1"/>
+	  </joint>
+	<joint name="dx_tilt_joint" type="revolute">
+		<parent link="dx_link"/>
+		<child link="tilt_link"/>
+		<axis xyz="0 -1 0"/>
+		<origin rpy="0 0 0.0" xyz="0.024 0 0"/>
+    <limit lower="-0.872664626" upper="0.872664626" effort="10" velocity="1"/>
+	  </joint>
+  <joint name="tilt_head_joint" type="fixed">
+		<origin rpy="0 0 0.0" xyz="0.028 0.0 0.0"/>
+		<parent link="tilt_link"/>
+		<child link="head_link"/>
+	  </joint>
+</robot>
