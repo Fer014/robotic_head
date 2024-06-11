@@ -1,9 +1,8 @@
 # robotic_head
 
 ## Steps to install
-1) Clone repo
-2) In dnn_yolo package -> unzip dlib  
-3) Colcon build
+1) Clone repo  
+2) Colcon build
 
 ## Launch files
 Launch robot urdf in RVIZ
