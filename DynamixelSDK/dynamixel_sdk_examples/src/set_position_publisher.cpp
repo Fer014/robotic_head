@@ -5,8 +5,7 @@
 #include <algorithm>
 
 #include "rclcpp/rclcpp.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/tf_angles.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include "camera_custom_interfaces/msg/detection.hpp"
 #include "camera_custom_interfaces/msg/detections.hpp"
 
@@ -25,14 +24,14 @@ public:
         integral_x(0), integral_y(0),
         min_velocity(1), max_velocity(50)
     {
-        publisher_ = this->create_publisher<dynamixel_sdk_custom_interfaces::msg::SetPosition>(
-            "set_position", 10);
+        publisher_ = this->create_publisher<sensor_msgs::msg::JointState>(
+            "joint_command", 10);
 
         detection_subscriber_ = this->create_subscription<camera_custom_interfaces::msg::Detections>(
             "detection_info", 10, std::bind(&SetPositionPublisher::detection_callback, this, std::placeholders::_1));
 
-        tf_angle_subscriber_ = this->create_subscription<dynamixel_sdk_custom_interfaces::msg::TfAngles>(
-            "tf_angles", 10, std::bind(&SetPositionPublisher::tf_angle_callback, this, std::placeholders::_1));
+        tf_angle_subscriber_ = this->create_subscription<sensor_msgs::msg::JointState>(
+            "joint_states", 10, std::bind(&SetPositionPublisher::tf_angle_callback, this, std::placeholders::_1));
 
         //timer_ = this->create_wall_timer(20ms, std::bind(&SetPositionPublisher::timer_callback, this));
     }
@@ -51,14 +50,8 @@ private:
         double ratio_x = static_cast<double>(delta_x) / image_width;
         double ratio_y = static_cast<double>(delta_y) / image_height;
 
-        // int target_angle_x = current_tf_angle_1;
-        // int target_angle_y = current_tf_angle_2;
-
         int target_angle_x = current_tf_angle_1 + static_cast<int>((180.0 / M_PI) * atan(-ratio_x));
         int target_angle_y = current_tf_angle_2 + static_cast<int>((180.0 / M_PI) * atan(-ratio_y));
-
-        // if (std::abs(ratio_x) > tol) target_angle_x = current_tf_angle_1 + static_cast<int>((180.0 / M_PI) * atan(-ratio_x));
-        // if (std::abs(ratio_y) > tol) target_angle_y = current_tf_angle_2 + static_cast<int>((180.0 / M_PI) * atan(-ratio_y));
 
         // Clamp the target angles between min_angle and max_angle
         target_angle_x = std::clamp(target_angle_x, -20, 20);
@@ -84,14 +77,21 @@ private:
         previous_error_x = error_x;
         previous_error_y = error_y;
 
-        auto message = std::make_shared<dynamixel_sdk_custom_interfaces::msg::SetPosition>();
-        message->angle_1 = target_angle_x;
-        message->angle_2 = target_angle_y;
-        message->velocity_1 = velocity_x;
-        message->velocity_2 = velocity_y;
+        auto message = std::make_shared<sensor_msgs::msg::JointState>();
+        message->header.stamp = this->now();
+        message->name.resize(2);
+        message->position.resize(2);
+        message->velocity.resize(2);
+        
+        message->name[0] = "neck_dx_joint";
+        message->name[1] = "dx_tilt_joint";
+               
+        message->position[0] = target_angle_x;
+        message->position[1] = target_angle_y;
+        
+        message->velocity[0] = velocity_x;
+        message->velocity[1] = velocity_y;
 
-        //RCLCPP_INFO(this->get_logger(), "ratioX=%f, ratioY=%f angleX=%d, angleY=%d velocityX=%d, velocityY=%d, errorX=%f, errorY=%f",
-        // ratio_x, ratio_y, target_angle_x, target_angle_y, velocity_x, velocity_y, error_x, error_y);
         publisher_->publish(*message);
     }
 
@@ -109,10 +109,6 @@ private:
                 int32_t width = detection.width;
                 int32_t height = detection.height;
 
-                // Process each detection as needed
-                // RCLCPP_INFO(this->get_logger(), "Detection: Class Name: %s, Class ID: %d, Confidence: %f, X: %d, Y: %d, Width: %d, Height: %d",
-                //     class_name.c_str(), class_id, confidence, x, y, width, height);
-
                 if (detection.class_id == 64)
                 {
                     center_x = detection.x + detection.width / 2;
@@ -128,15 +124,15 @@ private:
         }
     }
 
-    void tf_angle_callback(const dynamixel_sdk_custom_interfaces::msg::TfAngles::SharedPtr msg)
+    void tf_angle_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
     {
-        current_tf_angle_1 = msg->tf_angle_1;
-        current_tf_angle_2 = msg->tf_angle_2;
+        current_tf_angle_1 = msg->position[0];
+        current_tf_angle_2 = msg->position[1];
     }
 
-    rclcpp::Publisher<dynamixel_sdk_custom_interfaces::msg::SetPosition>::SharedPtr publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher_;
     rclcpp::Subscription<camera_custom_interfaces::msg::Detections>::SharedPtr detection_subscriber_;
-    rclcpp::Subscription<dynamixel_sdk_custom_interfaces::msg::TfAngles>::SharedPtr tf_angle_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr tf_angle_subscriber_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     int center_x;

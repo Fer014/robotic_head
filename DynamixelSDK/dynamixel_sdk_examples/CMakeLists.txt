@@ -13,9 +13,9 @@ endif()
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(dynamixel_sdk REQUIRED)
-find_package(dynamixel_sdk_custom_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(camera_custom_interfaces REQUIRED)
 
 include_directories(include)
@@ -24,7 +24,7 @@ include_directories(include)
 # Build
 add_executable(read_write_node src/read_write_node.cpp)
 ament_target_dependencies(read_write_node
-  dynamixel_sdk_custom_interfaces
+  sensor_msgs
   dynamixel_sdk
   rclcpp
 )
@@ -33,16 +33,14 @@ ament_target_dependencies(read_write_node
 # Build
 add_executable(scan_test src/scan_test.cpp)
 ament_target_dependencies(scan_test
-  dynamixel_sdk_custom_interfaces
   dynamixel_sdk
-  rclcpp
 )
 
 # static_tf_publisher
 # Build
 add_executable(static_tf_publisher src/static_tf_publisher.cpp)
 ament_target_dependencies(static_tf_publisher
-  dynamixel_sdk_custom_interfaces
+  sensor_msgs
   tf2_ros
   rclcpp
 )
@@ -51,7 +49,7 @@ ament_target_dependencies(static_tf_publisher
 # Build
 add_executable(set_position_publisher src/set_position_publisher.cpp)
 ament_target_dependencies(set_position_publisher
-  dynamixel_sdk_custom_interfaces
+  sensor_msgs
   tf2_ros
   rclcpp
   camera_custom_interfaces

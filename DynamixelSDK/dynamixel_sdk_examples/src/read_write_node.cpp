@@ -35,9 +35,7 @@
 #include <functional>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/tf_angles.hpp"
-#include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
@@ -88,7 +86,6 @@ uint32_t goal_position = 0;
 int dxl_comm_result = COMM_TX_FAIL;
 
 
-
 ReadWriteNode::ReadWriteNode()
 : Node("read_write_node")
 {
@@ -102,27 +99,25 @@ ReadWriteNode::ReadWriteNode()
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
   set_position_subscriber_ =
-    this->create_subscription<SetPosition>(
-    "set_position",
-    QOS_RKL10V,
-    [this](const SetPosition::SharedPtr msg) -> void
+    this->create_subscription<sensor_msgs::msg::JointState>(
+    "joint_command", QOS_RKL10V, [this](const sensor_msgs::msg::JointState::SharedPtr msg) -> void
     {
       uint8_t dxl_error = 0;
 
       // Angle Constraints
-      if(msg->angle_1 < DXL1_ANGLE_LOW) msg->angle_1 = DXL1_ANGLE_LOW;
-      else if(msg->angle_1 > DXL1_ANGLE_HIGH) msg->angle_1 = DXL1_ANGLE_HIGH;
+      if(msg->position[0] < DXL1_ANGLE_LOW) msg->position[0] = DXL1_ANGLE_LOW;
+      else if(msg->position[0] > DXL1_ANGLE_HIGH) msg->position[0] = DXL1_ANGLE_HIGH;
 
-      if(msg->angle_2 < DXL2_ANGLE_LOW) msg->angle_2 = DXL2_ANGLE_LOW;
-      else if(msg->angle_2 > DXL2_ANGLE_HIGH) msg->angle_2 = DXL2_ANGLE_HIGH;
+      if(msg->position[1] < DXL2_ANGLE_LOW) msg->position[1] = DXL2_ANGLE_LOW;
+      else if(msg->position[1] > DXL2_ANGLE_HIGH) msg->position[1] = DXL2_ANGLE_HIGH;
 
       // Position Value of X series is 4 byte data.
-      uint32_t goal_position_1 = (unsigned int)angleToPos(msg->angle_1);  // Convert int32 -> uint32
-      uint32_t goal_position_2 = (unsigned int)angleToPos(msg->angle_2);  // Convert int32 -> uint32
+      uint32_t goal_position_1 = static_cast<uint32_t>(angleToPos(msg->position[0]));  // Convert int32 -> uint32
+      uint32_t goal_position_2 = static_cast<uint32_t>(angleToPos(msg->position[1]));  // Convert int32 -> uint32
 
-      // Change Dynamixel Profile Velocity
-      int32_t velocity_1 = (msg->velocity_1 == 0) ? DEFAULT_VELOCITY : msg->velocity_1;
-      int32_t velocity_2 = (msg->velocity_2 == 0) ? DEFAULT_VELOCITY : msg->velocity_2;
+      // Check velocity array size and set default values if necessary
+      int32_t velocity_1 = (msg->velocity.size() > 0 && msg->velocity[0] != 0) ? static_cast<int32_t>(msg->velocity[0]) : DEFAULT_VELOCITY;
+      int32_t velocity_2 = (msg->velocity.size() > 1 && msg->velocity[1] != 0) ? static_cast<int32_t>(msg->velocity[1]) : DEFAULT_VELOCITY;
       packetHandler->write4ByteTxRx(portHandler, DXL1_ID, ADDR_PROFILE_VELOCITY, velocity_1);
       packetHandler->write4ByteTxRx(portHandler, DXL2_ID, ADDR_PROFILE_VELOCITY, velocity_2);
 
@@ -141,7 +136,7 @@ ReadWriteNode::ReadWriteNode()
       } else if (dxl_error != 0) {
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
       } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL1_ID, msg->angle_1);
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL1_ID, msg->position[0]);
       }
 
       // Write Goal Position 2 (length : 4 bytes)
@@ -159,59 +154,15 @@ ReadWriteNode::ReadWriteNode()
       } else if (dxl_error != 0) {
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
       } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL2_ID, msg->angle_2);
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL2_ID, msg->position[1]);
       }
 
     }
     );
 
   //publisher
-  tf_angles_publisher_ = this->create_publisher<TfAngles>("tf_angles", QOS_RKL10V);
+  tf_angles_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", QOS_RKL10V);
   timer_ = this->create_wall_timer( 1ms, std::bind(&ReadWriteNode::timer_callback, this));
-
-  
-  auto get_present_position =
-    [this](
-    const std::shared_ptr<GetPosition::Request> request,
-    std::shared_ptr<GetPosition::Response> response) -> void
-    {
-      // Read Present Position 1 (length : 4 bytes) and Convert uint32 -> int32
-      dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        (uint8_t) DXL1_ID,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_1),
-        &dxl_error
-      );
-      // Read Present Position 2 (length : 4 bytes) and Convert uint32 -> int32
-      dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        (uint8_t) DXL2_ID,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_2),
-        &dxl_error
-      );
-
-      RCLCPP_INFO(
-        this->get_logger(),
-        "Get [ID: %d] [Present Angle: %d]",
-        DXL1_ID,
-        PosToAngle(present_position_1)
-      );
-
-      RCLCPP_INFO(
-        this->get_logger(),
-        "Get [ID: %d] [Present Angle: %d]",
-        DXL2_ID,
-        PosToAngle(present_position_2)
-      );
-
-      response->angle_1 = PosToAngle(present_position_1);
-      response->angle_2 = PosToAngle(present_position_2);
-
-    };
-
-  get_position_server_ = create_service<GetPosition>("get_position", get_present_position);
   
 
 }
@@ -222,9 +173,15 @@ ReadWriteNode::~ReadWriteNode()
 
 void ReadWriteNode::timer_callback()
 {
-    dynamixel_sdk_custom_interfaces::msg::TfAngles msg;
+  sensor_msgs::msg::JointState joint_state_msg;
+  joint_state_msg.header.stamp = this->now();
+  joint_state_msg.name.resize(2);
+  joint_state_msg.position.resize(2);
+
+  joint_state_msg.name[0] = "neck_dx_joint";
+  joint_state_msg.name[1] = "dx_tilt_joint";
     // Read Present Position 1 (length : 4 bytes) and Convert uint32 -> int32
-    // uint32_t present_position_1, present_position_2;
+    uint32_t present_position_1, present_position_2;
     dxl_comm_result = packetHandler->read4ByteTxRx(
       portHandler,
       (uint8_t) DXL1_ID,
@@ -241,10 +198,10 @@ void ReadWriteNode::timer_callback()
       &dxl_error
     );
 
-    msg.tf_angle_1 = PosToAngle(present_position_1);
-    msg.tf_angle_2 = PosToAngle(present_position_2);
+    joint_state_msg.position[0] = PosToAngle(present_position_1);
+    joint_state_msg.position[1] = PosToAngle(present_position_2);
 
-    tf_angles_publisher_->publish(msg);
+    tf_angles_publisher_->publish(joint_state_msg);
 }
 
 

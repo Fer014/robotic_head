@@ -14,7 +14,7 @@
   <depend>rclcpp</depend>
   <depend>tf2_ros</depend>
   <depend>dynamixel_sdk</depend>
-  <depend>dynamixel_sdk_custom_interfaces</depend>
+  <depend>sensor_msgs</depend>
   <depend>camera_custom_interfaces</depend>
   
   <test_depend>ament_lint_auto</test_depend>

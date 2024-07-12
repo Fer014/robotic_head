@@ -22,30 +22,21 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 #include "dynamixel_sdk/dynamixel_sdk.h"
-#include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/tf_angles.hpp"
-#include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
-
+#include "sensor_msgs/msg/joint_state.hpp"
 
 class ReadWriteNode : public rclcpp::Node
 {
 public:
-  using SetPosition = dynamixel_sdk_custom_interfaces::msg::SetPosition;
-  using GetPosition = dynamixel_sdk_custom_interfaces::srv::GetPosition;
-  using TfAngles = dynamixel_sdk_custom_interfaces::msg::TfAngles;
 
   ReadWriteNode();
   virtual ~ReadWriteNode();
 
 private:
   void timer_callback();
-  rclcpp::Subscription<SetPosition>::SharedPtr set_position_subscriber_;
-  rclcpp::Service<GetPosition>::SharedPtr get_position_server_;
-  rclcpp::Publisher<TfAngles>::SharedPtr tf_angles_publisher_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr set_position_subscriber_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr tf_angles_publisher_;
   rclcpp::TimerBase::SharedPtr timer_;
 
-  int present_position_1;
-  int present_position_2;
 };
 
 #endif  // READ_WRITE_NODE_HPP_

@@ -2,7 +2,7 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/tf_angles.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include <math.h>
 
 class TFPublisherNode : public rclcpp::Node
@@ -13,8 +13,7 @@ public:
         static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
 
         // Subscribe to the present tf angles topic
-        tf_angles_subscriber_ = this->create_subscription<dynamixel_sdk_custom_interfaces::msg::TfAngles>(
-            "tf_angles", 10,
+        tf_angles_subscriber_ = this->create_subscription<sensor_msgs::msg::JointState>("joint_states", 10,
             std::bind(&TFPublisherNode::angleCallback, this, std::placeholders::_1));
 
         // Initialize present positions
@@ -26,10 +25,10 @@ public:
     }
 
 private:
-	void angleCallback(const dynamixel_sdk_custom_interfaces::msg::TfAngles::SharedPtr msg) 
+	void angleCallback(const sensor_msgs::msg::JointState::SharedPtr msg) 
     {
-		angle1 = msg->tf_angle_1;
-		angle2 = msg->tf_angle_2;
+		angle1 = msg->position[0];
+		angle2 = msg->position[1];
 		RCLCPP_INFO(this->get_logger(), "angle1: %d, angle2: %d", angle1, angle2);
 		
 		// Republish static transforms when positions are updated
@@ -144,7 +143,7 @@ private:
         }
     }
 
-    rclcpp::Subscription<dynamixel_sdk_custom_interfaces::msg::TfAngles>::SharedPtr tf_angles_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr tf_angles_subscriber_;
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
     std::vector<geometry_msgs::msg::TransformStamped> static_transforms_;
     int angle1;
