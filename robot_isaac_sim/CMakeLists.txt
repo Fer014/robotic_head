@@ -10,8 +10,8 @@ find_package(rclpy REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-add_executable(test_ros2bridge src/test_ros2bridge.cpp)
-ament_target_dependencies(test_ros2bridge rclcpp sensor_msgs)
+add_executable(scan_joint_state_publisher src/scan_joint_state_publisher.cpp)
+ament_target_dependencies(scan_joint_state_publisher rclcpp sensor_msgs)
 
 add_executable(digital_twin_bridge src/digital_twin_bridge.cpp)
 ament_target_dependencies(digital_twin_bridge 
@@ -27,7 +27,7 @@ install(DIRECTORY
 
 # Install C++ executables
 install(TARGETS
-  test_ros2bridge
+  scan_joint_state_publisher
   digital_twin_bridge
   DESTINATION lib/${PROJECT_NAME})
   

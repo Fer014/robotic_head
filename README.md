@@ -21,7 +21,7 @@ ros2 launch dnn_yolo dnn_yolo.launch.py
 ## Run programs
 Run program to perform a scanning test moving the robot head
 ```bash
-ros2 run robot_isaac_sim test_ros2bridge
+ros2 run robot_isaac_sim scan_joint_state_publisher
 ```
 ## Topics
 Set motors position in both real and simulated robot (velocity values are optional)
