@@ -19,10 +19,10 @@ public:
         center_y(240),  // Initialize to center of the image (480/2)
         current_tf_angle_1(0),
         current_tf_angle_2(0),
-        Kp(3.0), Ki(0.0), Kd(0.0),
+        Kp(1.0), Ki(0.0), Kd(0.0),
         previous_error_x(0), previous_error_y(0),
         integral_x(0), integral_y(0),
-        min_velocity(1), max_velocity(50)
+        min_velocity(0.2), max_velocity(12.0)
     {
         publisher_ = this->create_publisher<sensor_msgs::msg::JointState>(
             "joint_command", 10);
@@ -67,8 +67,8 @@ private:
         double derivative_x = error_x - previous_error_x;
         double derivative_y = error_y - previous_error_y;
 
-        int velocity_x = static_cast<int>(Kp * error_x + Ki * integral_x + Kd * derivative_x);
-        int velocity_y = static_cast<int>(Kp * error_y + Ki * integral_y + Kd * derivative_y);
+        double velocity_x = Kp * error_x + Ki * integral_x + Kd * derivative_x;
+        double velocity_y = Kp * error_y + Ki * integral_y + Kd * derivative_y;
 
         // Clamp the velocities between min_velocity and max_velocity
         velocity_x = std::clamp(velocity_x, min_velocity, max_velocity);
@@ -147,9 +147,9 @@ private:
     double previous_error_x, previous_error_y;
     double integral_x, integral_y;
 
-    // Velocity limits
-    const int min_velocity;
-    const int max_velocity;
+    // Velocity limits (in RPM)
+    const double min_velocity;
+    const double max_velocity;
 };
 
 int main(int argc, char *argv[])

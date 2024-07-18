@@ -45,6 +45,7 @@
 #define ADDR_OPERATING_MODE 11
 #define ADDR_TORQUE_ENABLE 64
 #define ADDR_GOAL_POSITION 116
+#define ADDR_PRESENT_VELOCITY 128
 #define ADDR_PRESENT_POSITION 132
 #define ADDR_PROFILE_VELOCITY 112
 
@@ -63,7 +64,8 @@
 #define DXL2_ANGLE_LOW  -50
 #define DXL2_ANGLE_HIGH  50
 // Default velocity value
-#define DEFAULT_VELOCITY 33
+#define DEFAULT_VELOCITY 8
+#define VELOCITY_RPM_UNIT 0.229
 
 
 using namespace std::chrono_literals;
@@ -107,17 +109,20 @@ ReadWriteNode::ReadWriteNode()
       // Angle Constraints
       if(msg->position[0] < DXL1_ANGLE_LOW) msg->position[0] = DXL1_ANGLE_LOW;
       else if(msg->position[0] > DXL1_ANGLE_HIGH) msg->position[0] = DXL1_ANGLE_HIGH;
-
       if(msg->position[1] < DXL2_ANGLE_LOW) msg->position[1] = DXL2_ANGLE_LOW;
       else if(msg->position[1] > DXL2_ANGLE_HIGH) msg->position[1] = DXL2_ANGLE_HIGH;
 
       // Position Value of X series is 4 byte data.
+      // Position Values are transformed from degrees to Dynamixel Units
       uint32_t goal_position_1 = static_cast<uint32_t>(angleToPos(msg->position[0]));  // Convert int32 -> uint32
       uint32_t goal_position_2 = static_cast<uint32_t>(angleToPos(msg->position[1]));  // Convert int32 -> uint32
 
       // Check velocity array size and set default values if necessary
       int32_t velocity_1 = (msg->velocity.size() > 0 && msg->velocity[0] != 0) ? static_cast<int32_t>(msg->velocity[0]) : DEFAULT_VELOCITY;
       int32_t velocity_2 = (msg->velocity.size() > 1 && msg->velocity[1] != 0) ? static_cast<int32_t>(msg->velocity[1]) : DEFAULT_VELOCITY;
+      // Velocity Values are transformed from RPM (revolutions per minute) to Dynamixel Units
+      velocity_1 /= VELOCITY_RPM_UNIT;
+      velocity_2 /= VELOCITY_RPM_UNIT;
       packetHandler->write4ByteTxRx(portHandler, DXL1_ID, ADDR_PROFILE_VELOCITY, velocity_1);
       packetHandler->write4ByteTxRx(portHandler, DXL2_ID, ADDR_PROFILE_VELOCITY, velocity_2);
 
@@ -136,7 +141,7 @@ ReadWriteNode::ReadWriteNode()
       } else if (dxl_error != 0) {
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
       } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL1_ID, msg->position[0]);
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %f]", DXL1_ID, msg->position[0]);
       }
 
       // Write Goal Position 2 (length : 4 bytes)
@@ -154,7 +159,7 @@ ReadWriteNode::ReadWriteNode()
       } else if (dxl_error != 0) {
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
       } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %d]", DXL2_ID, msg->position[1]);
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Angle: %f]", DXL2_ID, msg->position[1]);
       }
 
     }
@@ -177,11 +182,13 @@ void ReadWriteNode::timer_callback()
   joint_state_msg.header.stamp = this->now();
   joint_state_msg.name.resize(2);
   joint_state_msg.position.resize(2);
+  joint_state_msg.velocity.resize(2);
 
   joint_state_msg.name[0] = "neck_dx_joint";
   joint_state_msg.name[1] = "dx_tilt_joint";
+
     // Read Present Position 1 (length : 4 bytes) and Convert uint32 -> int32
-    uint32_t present_position_1, present_position_2;
+    uint32_t present_position_1, present_position_2, present_velocity_1, present_velocity_2;
     dxl_comm_result = packetHandler->read4ByteTxRx(
       portHandler,
       (uint8_t) DXL1_ID,
@@ -198,8 +205,31 @@ void ReadWriteNode::timer_callback()
       &dxl_error
     );
 
+    // Read Present Velocity 1 (length : 4 bytes) and Convert uint32 -> int32
+    dxl_comm_result = packetHandler->read4ByteTxRx(
+      portHandler, (
+      uint8_t) DXL1_ID, 
+      ADDR_PRESENT_VELOCITY, 
+      reinterpret_cast<uint32_t *>(&present_velocity_1),
+      &dxl_error
+    );
+
+    // Read Present Velocity 2 (length : 4 bytes) and Convert uint32 -> int32
+    dxl_comm_result = packetHandler->read4ByteTxRx(
+      portHandler, (
+      uint8_t) DXL2_ID, 
+      ADDR_PRESENT_VELOCITY, 
+      reinterpret_cast<uint32_t *>(&present_velocity_2),
+      &dxl_error
+    );
+
+    // Position Values are transformed from Dynamixel Units to degrees
     joint_state_msg.position[0] = PosToAngle(present_position_1);
     joint_state_msg.position[1] = PosToAngle(present_position_2);
+
+    // Velocity Values are transformed from Dynamixel Units to RPM (revolutions per minute)
+    joint_state_msg.velocity[0] = present_velocity_1 * VELOCITY_RPM_UNIT;
+    joint_state_msg.velocity[1] = present_velocity_2 * VELOCITY_RPM_UNIT;
 
     tf_angles_publisher_->publish(joint_state_msg);
 }

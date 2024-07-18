@@ -22,7 +22,7 @@ public:
 private:
     void simulated_joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
     {
-        RCLCPP_INFO(this->get_logger(), "Received simulated_joint_states: '%f, %f'", msg->position[0] * M_PI / 180.0, msg->position[1] * M_PI / 180.0);
+        RCLCPP_INFO(this->get_logger(), "Received simulated_joint_states: '%f, %f'", msg->position[0] * 180.0 / M_PI, msg->position[1] * 180.0 / M_PI);
 
         // Aquí puedes procesar los estados de las articulaciones simuladas si es necesario
     }
@@ -35,13 +35,16 @@ private:
         auto simulated_joint_command_msg = sensor_msgs::msg::JointState();
         simulated_joint_command_msg.header.stamp = this->get_clock()->now();
         simulated_joint_command_msg.name = msg->name;
+        simulated_joint_command_msg.position.resize(2);
+        simulated_joint_command_msg.velocity.resize(2);
         
         // Convertir las posiciones de grados a radianes
-        std::vector<double> positions_in_radians;
-        for (const auto& position : msg->position) {
-            positions_in_radians.push_back(position * M_PI / 180.0);
-        }
-        simulated_joint_command_msg.position = positions_in_radians;
+        simulated_joint_command_msg.position[0] = msg->position[0] * M_PI / 180.0;
+        simulated_joint_command_msg.position[1] = msg->position[1] * M_PI / 180.0;
+
+        // Convertir las velocidades (magic number to see if it works)
+        simulated_joint_command_msg.velocity[0] = msg->velocity[0] / 3;
+        simulated_joint_command_msg.velocity[1] = msg->velocity[1] / 3;
 
         // Publicar el mensaje JointState
         publisher_simulated_joint_command_->publish(simulated_joint_command_msg);

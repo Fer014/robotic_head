@@ -5,8 +5,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
-#define VELOCITY_SCAN 10
-#define VELOCITY_UNIT_RPM 0.229
+#define VELOCITY_SCAN 2 // Velocity of the Dynamixel Motors in revolutions per minute (RPM)
 
 class JointStatePublisher : public rclcpp::Node
 {
@@ -87,7 +86,7 @@ private:
         double max_displacement_degrees = (displacement_joint_1 > displacement_joint_2) ? displacement_joint_1 : displacement_joint_2;
         double max_velocity = (joint_state_.velocity[0] > joint_state_.velocity[1]) ? joint_state_.velocity[0] : joint_state_.velocity[1];   
         double max_displacement_radians = max_displacement_degrees * M_PI / 180.0;
-        double angular_velocity =  max_velocity * VELOCITY_UNIT_RPM * 2 * M_PI / 60.0;
+        double angular_velocity =  max_velocity * 2 * M_PI / 60.0;
         double time = max_displacement_radians / angular_velocity;
         RCLCPP_INFO(this->get_logger(), "Received time: %f", time);
         return time;
