@@ -19,7 +19,7 @@ def generate_launch_description():
     robot_urdf_path = FindPackageShare('robot_urdf')
     model_path = PathJoinSubstitution(['urdf', 'head.urdf'])
     #rviz_config_path = PathJoinSubstitution([robot_urdf_path, 'config', 'head.rviz'])
-    rviz_config_path = os.path.join(os.getcwd(), 'src', 'robot_urdf', 'config', 'head.rviz')
+    rviz_config_path = os.path.join(os.getcwd(), 'src', 'robotic_head', 'robot_urdf', 'config', 'head.rviz')
 
     realsense_launch_file = os.path.join(
         os.getcwd(), 'install', 'realsense2_camera', 'share', 'realsense2_camera', 'launch', 'rs_launch.py'

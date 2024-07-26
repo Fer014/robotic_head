@@ -110,14 +110,6 @@ Visualization Manager:
           Value: false
         D435_1_link:
           Value: true
-        D435_2_color_frame:
-          Value: false
-        D435_2_color_optical_frame:
-          Value: false
-        D435_2_depth_frame:
-          Value: false
-        D435_2_depth_optical_frame:
-          Value: false
         D435_2_link:
           Value: true
         camera_optical:
@@ -138,12 +130,7 @@ Visualization Manager:
       Tree:
         neck_link:
           D435_2_link:
-            D435_2_color_frame:
-              D435_2_color_optical_frame:
-                {}
-            D435_2_depth_frame:
-              D435_2_depth_optical_frame:
-                {}
+            {}
           dx_link:
             tilt_link:
               head_link:
@@ -286,10 +273,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.20039741694927216
+      Pitch: 0.07539742439985275
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.098576545715332
+      Yaw: 3.1135759353637695
     Saved: ~
 Window Geometry:
   Displays:
