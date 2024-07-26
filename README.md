@@ -29,7 +29,7 @@ sudo chmod a+rw /dev/ttyUSB0
 ```
 
 ### Installation steps
-1. **Create a ROS2 workspace (or use an existing one):**
+1. **Create a ROS2 workspace (use the one where Intel RealSense ROS2 Wrapper is builded):**
 ```bash
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src/
