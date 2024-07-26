@@ -21,7 +21,7 @@ sudo apt install ros-humble-xacro
 - [Intel RealSense ROS2 Wrapper] - https://github.com/IntelRealSense/realsense-ros?tab=readme-ov-file#installation-on-ubuntu
   
 Make sure to follow the tutorial: in step 2 choose option 1, in step 3 choose option 2
-- [DYNAMIXEL Wizard 2.0] (optional) - https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/
+- [DYNAMIXEL Wizard 2.0] (optional) - https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/#install-linux
 
 To enable read and write permissions for the port where the Dynamixel is connected:
 ```bash
