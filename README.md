@@ -66,3 +66,6 @@ ros2 run robot_isaac_sim scan_joint_state_publisher
 ```
 ### Topics
 Set motors position in both real and simulated robot (velocity values are optional)
+```bash
+ros2 topic pub -1 /joint_command sensor_msgs/JointState '{name: ["neck_dx_joint", "dx_tilt_joint"], position: [0, 0]}'
+```
