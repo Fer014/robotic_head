@@ -12,6 +12,12 @@ To get a local copy up and running, follow these simple steps:
 ### Prerequisites
 
 - [ROS2 Humble] - https://docs.ros.org/en/humble/Installation.html
+
+It may be necessary to install Xacro:
+```bash
+sudo apt-get update
+sudo apt install ros-humble-xacro
+```
 - [Intel RealSense ROS2 Wrapper] - https://github.com/IntelRealSense/realsense-ros?tab=readme-ov-file#installation-on-ubuntu
   
 Make sure to follow the tutorial: in step 2 choose option 1, in step 3 choose option 2
