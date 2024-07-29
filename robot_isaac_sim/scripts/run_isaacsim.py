@@ -119,7 +119,7 @@ class IsaacSimLauncherNode(Node):
                 if sys.platform == "win32":
                     filepath_root = os.path.join(home_path, "AppData", "Local", "ov", "pkg", f"isaac_sim-{args.version}")
                 else:
-                    filepath_root = os.path.join(home_path, ".local", "share", "ov", "pkg", f"isaac_sim-{args.version}")
+                    filepath_root = os.path.join(home_path, ".local", "share", "ov", "pkg", f"isaac-sim-{args.version}")
             else:
                 print(f"Unsupported Isaac Sim version: {args.version}")
                 sys.exit(0)
