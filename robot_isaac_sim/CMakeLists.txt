@@ -23,6 +23,7 @@ install(DIRECTORY
   src
   scripts
   launch
+  config
   DESTINATION share/${PROJECT_NAME})
 
 # Install C++ executables

@@ -25,6 +25,7 @@ Make sure to follow the tutorial: in step 2 choose option 1, in step 3 choose op
 
 To enable read and write permissions for the port where the Dynamixel is connected:
 ```bash
+ls /dev/tty*
 sudo chmod a+rw /dev/ttyUSB0
 ```
 
@@ -49,11 +50,15 @@ source install/setup.bash
 ### Launch files
 Launch real robot urdf in RVIZ
 ```bash
-ros2 launch robot_urdf display.launch.py
+ros2 launch robot_urdf robot_head.launch.py
 ```
 Launch simulated robot in Isaac Sim
 ```bash
 ros2 launch robot_isaac_sim run_isaacsim.launch.py
+```
+Launch rviz2 session to visualize real or simulated robot (already launched in the two previous launch files but in case)
+```bash
+ros2 launch robot_urdf display.launch.py
 ```
 Launch object recognition and head tracking program
 ```bash

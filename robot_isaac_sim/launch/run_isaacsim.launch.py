@@ -1,3 +1,5 @@
+## Modified launch file for Isaac Sim
+
 ## Copyright (c) 2024, NVIDIA CORPORATION. All rights reserved.
 ## NVIDIA CORPORATION and its licensors retain all intellectual property
 ## and proprietary rights in and to this software, related documentation
@@ -8,17 +10,18 @@
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, Command, PythonExpression
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
-
+import os
 
 # Declare all launch arguments corresponding to the bash script options
 launch_args = [
     DeclareLaunchArgument('version', default_value='2023.1.1', description='Specify the version of Isaac Sim to use. Isaac Sim will be run from default install root folder for the specified version. Leave empty to use latest version of Isaac Sim.'),
     
-    DeclareLaunchArgument('install_path', default_value='', description='If Isaac Sim is insalled in a non-default location, provide a specific path to Isaac Sim installation root folder. (If defined, "version" parameter will be ignored)'),
+    DeclareLaunchArgument('install_path', default_value='', description='If Isaac Sim is installed in a non-default location, provide a specific path to Isaac Sim installation root folder. (If defined, "version" parameter will be ignored)'),
     
     DeclareLaunchArgument('use_internal_libs', default_value='false', description='Set to true if you wish to use internal ROS libraries shipped with Isaac Sim.'),
     
@@ -34,6 +37,13 @@ launch_args = [
     
     DeclareLaunchArgument('ros_installation_path', default_value='', description='If ROS is installed in a non-default location (as in not under /opt/ros/), provide the path to your main setup.bash file for your ROS install. (/path/to/custom/ros/install/setup.bash)'),
     
+    # Additional launch arguments for the included URDF/RViz launch file
+    DeclareLaunchArgument('urdf_gui', default_value='false', description='Flag to enable joint_state_publisher_gui for the URDF'),
+    DeclareLaunchArgument('urdf_model', default_value='urdf/head.urdf', description='Path to robot urdf file relative to urdf_tutorial package'),
+    DeclareLaunchArgument('urdf_package', default_value='robot_urdf', description='Name of the package containing the URDF file'),
+    DeclareLaunchArgument('urdf_rvizconfig', default_value=os.path.join(
+        os.getcwd(), 'src', 'robotic_head', 'robot_isaac_sim', 'config', 'head.rviz'
+    ), description='Absolute path to the RViz configuration file for URDF'),
 ]
 
 # List of parameters to check
@@ -89,12 +99,29 @@ def launch_setup(context):
         name='digital_twin_bridge'
     )
 
-    return [isaacsim_node, digital_twin_bridge_node]
+    # Path to the URDF and RViz launch file
+    urdf_rviz_launch_file = PathJoinSubstitution([
+        FindPackageShare('robot_urdf'),  # Ensure this matches the correct package name
+        'launch',
+        'display.launch.py'  # Name of the launch file
+    ])
 
+    # Include the URDF and RViz launch file
+    urdf_rviz_include = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(urdf_rviz_launch_file),
+        launch_arguments={
+            'gui': LaunchConfiguration('urdf_gui'),
+            'model': LaunchConfiguration('urdf_model'),
+            'package': LaunchConfiguration('urdf_package'),
+            'rvizconfig': LaunchConfiguration('urdf_rvizconfig')
+        }.items()
+    )
+
+    return [isaacsim_node, digital_twin_bridge_node, urdf_rviz_include]
 
 # Create and return the launch description with all declared arguments and the execute launch_setup
 def generate_launch_description():
-    opfunc = OpaqueFunction(function = launch_setup)
+    opfunc = OpaqueFunction(function=launch_setup)
     ld = LaunchDescription(launch_args)
     ld.add_action(opfunc)
     return ld
