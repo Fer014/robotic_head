@@ -100,7 +100,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(realsense_launch_file),
             launch_arguments={
                 'camera_namespace': 'robot1',
-                'camera_name': 'D435_1',
+                'camera_name': 'D435_head',
                 'serial_no': '_241122071360',
                 'depth_module.profile': '1280x720x30',
                 'pointcloud.enable': 'true'
@@ -108,18 +108,18 @@ def generate_launch_description():
         )
     )
 
-    # # Include the realsense2_camera launch file (D435_2)
-    # ld.add_action(
-    #     IncludeLaunchDescription(
-    #         PythonLaunchDescriptionSource(realsense_launch_file),
-    #         launch_arguments={
-    #             'camera_namespace': 'robot1',
-    #             'camera_name': 'D435_2',
-    #             'serial_no': '_239722072963',
-    #             'depth_module.profile': '1280x720x30',
-    #             'pointcloud.enable': 'true'
-    #         }.items()
-    #     )
-    # )
+    # Include the realsense2_camera launch file (D435_2)
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(realsense_launch_file),
+            launch_arguments={
+                'camera_namespace': 'robot1',
+                'camera_name': 'D435_ceiling',
+                'serial_no': '_239722072963',
+                'depth_module.profile': '1280x720x30',
+                'pointcloud.enable': 'true'
+            }.items()
+        )
+    )
 
     return ld

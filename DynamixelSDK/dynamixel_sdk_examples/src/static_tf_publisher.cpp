@@ -80,19 +80,17 @@ private:
         // Set rotation around Z-axis using present_position_2
         tf2::Quaternion quat3;
         quat3.setRPY(0, 0, 0); // Roll, Pitch, Yaw
-        // RCLCPP_INFO(this->get_logger(), "quat1: [%f, %f, %f, %f]\n quat2: [%f, %f, %f, %f]\n quat3: [%f, %f, %f, %f]\n",
-        //     quat1.x(), quat1.y(), quat1.z(), quat1.w(), quat2.x(), quat2.y(), quat2.z(), quat2.w(), quat3.x(), quat3.y(), quat3.z(), quat3.w());
         static_transform_stamped3.transform.rotation.x = quat3.x();
         static_transform_stamped3.transform.rotation.y = quat3.y();
         static_transform_stamped3.transform.rotation.z = quat3.z();
         static_transform_stamped3.transform.rotation.w = quat3.w();
         static_transforms_.push_back(static_transform_stamped3);
 
-        // Static transform 4 - Head to Camera Optical Link
+        // Static transform 4 - Head to Camera Optical Link (D435_head)
 	    geometry_msgs::msg::TransformStamped static_transform_stamped4;
 	    static_transform_stamped4.header.stamp = this->now();
 	    static_transform_stamped4.header.frame_id = "head_link";
-	    static_transform_stamped4.child_frame_id = "camera_optical";
+	    static_transform_stamped4.child_frame_id = "D435_head_optical_link";
         // Set translation and rotation obtained from eye-in-hand camera calibration
 	    static_transform_stamped4.transform.translation.x = 0.0180;
 	    static_transform_stamped4.transform.translation.y = 0.0336;
@@ -103,11 +101,11 @@ private:
 	    static_transform_stamped4.transform.rotation.w = 0.5079;
 	    static_transforms_.push_back(static_transform_stamped4);
 
-        // Static transform 5 - Camera Optical to Camera ROS2 (D435_1) Link
+        // Static transform 5 - Camera Optical to Camera ROS2 Link (D435_head)
         geometry_msgs::msg::TransformStamped static_transform_stamped5;
 	    static_transform_stamped5.header.stamp = this->now();
-	    static_transform_stamped5.header.frame_id = "camera_optical";
-	    static_transform_stamped5.child_frame_id = "D435_1_link";
+	    static_transform_stamped5.header.frame_id = "D435_head_optical_link";
+	    static_transform_stamped5.child_frame_id = "D435_head_link";
         // Set rotation from optical frame to ROS2 frame
         tf2::Quaternion quat5;
         quat5.setRPY(90*(M_PI/180), -90*(M_PI/180), 0); // Roll, Pitch, Yaw
@@ -117,24 +115,45 @@ private:
         static_transform_stamped5.transform.rotation.w = quat5.w();
 	    static_transforms_.push_back(static_transform_stamped5);
 
-        // Static transform 6 - Neck to Camera ROS2 (D435_2) Link
+        // Static transform 6 - Neck to Camera Optical Link (D435_ceiling)
         geometry_msgs::msg::TransformStamped static_transform_stamped6;
 	    static_transform_stamped6.header.stamp = this->now();
 	    static_transform_stamped6.header.frame_id = "neck_link";
-	    static_transform_stamped6.child_frame_id = "D435_2_link";
-        static_transform_stamped6.transform.translation.x = 0.0;
-        static_transform_stamped6.transform.translation.y = 0.30;
-        static_transform_stamped6.transform.translation.z = 0.03;
-        // Set rotation from neck frame to ROS2 frame
+	    static_transform_stamped6.child_frame_id = "D435_ceiling_optical_link";
+        // Set translation and rotation obtained from ArUco camera calibration
+        static_transform_stamped6.transform.translation.x = 0.3307;
+        static_transform_stamped6.transform.translation.y = -0.1169;
+        static_transform_stamped6.transform.translation.z = 0.9008;
         tf2::Quaternion quat6;
-        quat6.setRPY(0, 0, -90*(M_PI/180)); // Roll, Pitch, Yaw 
+        quat6.setRPY(179.1301*(M_PI/180), -0.3724*(M_PI/180), -90.1271*(M_PI/180)); // Roll, Pitch, Yaw 
 	    static_transform_stamped6.transform.rotation.x = quat6.x();
         static_transform_stamped6.transform.rotation.y = quat6.y();
         static_transform_stamped6.transform.rotation.z = quat6.z();
         static_transform_stamped6.transform.rotation.w = quat6.w();
 	    static_transforms_.push_back(static_transform_stamped6);
 
+        /*
+        Marker ID: [9]
+          Translation (x, y, z): ([0.131322], [-0.32451127], [0.90106753])
+          Rotation (roll, pitch, yaw): (179.6256826590625, -0.8690713942656215, -0.12712198754221418)
+         In Matlab:
+        translation_neck2cam = 0.3307, -0.1169, 0.9008
+        eul_neck2cam_degrees = 179.1301   -0.3724  -90.1271
+        */
 
+        // Static transform 7 - Camera Optical to Camera ROS2 Link (D435_ceiling)
+        geometry_msgs::msg::TransformStamped static_transform_stamped7;
+	    static_transform_stamped7.header.stamp = this->now();
+	    static_transform_stamped7.header.frame_id = "D435_ceiling_optical_link";
+	    static_transform_stamped7.child_frame_id = "D435_ceiling_link";
+        // Set rotation from optical frame to ROS2 frame
+        tf2::Quaternion quat7;
+        quat7.setRPY(90*(M_PI/180), -90*(M_PI/180), 0); // Roll, Pitch, Yaw 
+	    static_transform_stamped7.transform.rotation.x = quat7.x();
+        static_transform_stamped7.transform.rotation.y = quat7.y();
+        static_transform_stamped7.transform.rotation.z = quat7.z();
+        static_transform_stamped7.transform.rotation.w = quat7.w();
+	    static_transforms_.push_back(static_transform_stamped7);
 
         // Publish all static transforms
         for (const auto &static_transform : static_transforms_)
